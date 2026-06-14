@@ -77,7 +77,28 @@ def spiel_berechnen(team_links, team_rechts, champs_links, champs_rechts):
 
     return sw_links, sw_rechts, luck_links, luck_rechts, teamwert_links, teamwert_rechts, winner
 
-def match_anzeige(team_links, team_rechts, champs_links=None, champs_rechts=None, sw_links=None, sw_rechts=None):
+def get_farbe_für_sw(rolle, luck_wert, luck_links, luck_rechts, winner):
+    """Bestimmt die Farbe für einen SW-Wert basierend auf Luck und Gewinner"""
+    
+    # Höchster Luck im Siegerteam finden
+    if winner == "links":
+        max_luck = max(luck_links.values())
+        ist_max_luck = luck_links[rolle] == max_luck
+    else:
+        max_luck = max(luck_rechts.values())
+        ist_max_luck = luck_rechts[rolle] == max_luck
+    
+    # Farblogik: Gelb > Grün/Rot
+    if ist_max_luck:
+        return GELB
+    elif luck_wert > 0:
+        return GRÜN
+    elif luck_wert < 0:
+        return ROT
+    else:
+        return RESET  # 0 = keine Farbe
+
+def match_anzeige(team_links, team_rechts, champs_links=None, champs_rechts=None, sw_links=None, sw_rechts=None, luck_links=None, luck_rechts=None, winner=None):
     rollen = ["Top", "Jungle", "Mid", "Bot", "Support"]
 
     # 🔹 Überschrift
@@ -103,10 +124,21 @@ def match_anzeige(team_links, team_rechts, champs_links=None, champs_rechts=None
         sw1 = sw_links[rolle] if sw_links else ""
         sw2 = sw_rechts[rolle] if sw_rechts else ""
 
+        # Farben für SW-Werte (nur wenn luck_links und winner vorhanden sind)
+        if luck_links and winner:
+            farbe1 = get_farbe_für_sw(rolle, luck_links[rolle], luck_links, luck_rechts, winner)
+            farbe2 = get_farbe_für_sw(rolle, luck_rechts[rolle], luck_links, luck_rechts, winner)
+            
+            sw1_farbig = f"{farbe1}{sw1}{RESET}"
+            sw2_farbig = f"{farbe2}{sw2}{RESET}"
+        else:
+            sw1_farbig = sw1
+            sw2_farbig = sw2
+
         print(f"{rolle:<8} | {team_links['tag']} {p1['name']:<14} | {p1['skill']:>3} | "
-              f"{champ1_name:<12} | {champ1_str:>3} | {sw1:>4} || "
+              f"{champ1_name:<12} | {champ1_str:>3} | {sw1_farbig:>4} || "
               f"{rolle:<8} | {team_rechts['tag']} {p2['name']:<14} | {p2['skill']:>3} | "
-              f"{champ2_name:<12} | {champ2_str:>3} | {sw2:>4} |")
+              f"{champ2_name:<12} | {champ2_str:>3} | {sw2_farbig:>4} |")
 
 def team_ranked(eigenes_team):
     if len(teams) < 2:
@@ -176,8 +208,8 @@ def team_ranked(eigenes_team):
     print(f"\n=== ERGEBNIS ===")
     print(header + "\n")
 
-    # 🔹 Finale Anzeige mit SW
-    match_anzeige(team_links, team_rechts, champs_links, champs_rechts, sw_links, sw_rechts)
+    # 🔹 Finale Anzeige mit SW und Farben
+    match_anzeige(team_links, team_rechts, champs_links, champs_rechts, sw_links, sw_rechts, luck_links, luck_rechts, winner)
 
     input("\nEnter zum Fortfahren...")
 
