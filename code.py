@@ -144,6 +144,62 @@ def match_anzeige(team_links, team_rechts, champs_links=None, champs_rechts=None
               f"{rolle:<8} | {team_rechts['tag']} {p2['name']:<14} | {p2['skill']:>3} | "
               f"{champ2_name:<12} | {champ2_str:>3} | {sw2_farbig:>4} |")
 
+def teams_speichern():
+    """Speichert alle Teams in die JSON-Datei"""
+    with open(dateipfad, "w") as f:
+        json.dump(teams, f, indent=4)
+
+def teams_laden():
+    """Lädt alle Teams aus der JSON-Datei oder initialisiert leere Liste"""
+    global teams
+    try:
+        with open(dateipfad, "r") as f:
+            teams = json.load(f)
+    except FileNotFoundError:
+        teams = []
+
+def matches_speichern():
+    """Speichert alle Matches in die JSON-Datei"""
+    with open(matches_dateipfad, "w") as f:
+        json.dump(matches, f, indent=4)
+
+def matches_laden():
+    """Lädt alle Matches aus der JSON-Datei oder initialisiert leere Liste"""
+    global matches
+    try:
+        with open(matches_dateipfad, "r") as f:
+            matches = json.load(f)
+    except FileNotFoundError:
+        matches = []
+
+def match_speichern(match_data):
+    """Speichert ein einzelnes Match und aktualisiert die Datei"""
+    matches.append(match_data)
+    matches_speichern()
+
+def champions_anzeigen(zurueck_funktion):
+    """Zeigt alle Champions sortiert nach Name mit ihren Stärkewerten an"""
+    while True:
+        print("\n=== CHAMPION ÜBERSICHT ===\n")
+
+        # Alphabetisch sortieren
+        sortiert = sorted(champions, key=lambda c: c["name"])
+
+        # Tabellen-Header
+        print(f"{'Name':<15} | {'Stärke':>7}")
+        print("-" * 25)
+
+        # Alle Champions auflisten
+        for champ in sortiert:
+            print(f"{champ['name']:<15} | {champ['stärke']:>7}")
+
+        print("\nx. Zurück")
+
+        choice = input("Auswahl: ").strip().lower()
+
+        if choice == "x":
+            return
+
 def team_ranked(eigenes_team):
     """Simuliert ein Ranked-Match: Gegner wählen, Champions picken, Ergebnis berechnen"""
     if len(teams) < 2:
@@ -234,62 +290,6 @@ def team_ranked(eigenes_team):
         "winner": winner
     }
     match_speichern(match_data)
-
-def champions_anzeigen(zurueck_funktion):
-    """Zeigt alle Champions sortiert nach Name mit ihren Stärkewerten an"""
-    while True:
-        print("\n=== CHAMPION ÜBERSICHT ===\n")
-
-        # Alphabetisch sortieren
-        sortiert = sorted(champions, key=lambda c: c["name"])
-
-        # Tabellen-Header
-        print(f"{'Name':<15} | {'Stärke':>7}")
-        print("-" * 25)
-
-        # Alle Champions auflisten
-        for champ in sortiert:
-            print(f"{champ['name']:<15} | {champ['stärke']:>7}")
-
-        print("\nx. Zurück")
-
-        choice = input("Auswahl: ").strip().lower()
-
-        if choice == "x":
-            return
-
-def teams_speichern():
-    """Speichert alle Teams in die JSON-Datei"""
-    with open(dateipfad, "w") as f:
-        json.dump(teams, f, indent=4)
-
-def teams_laden():
-    """Lädt alle Teams aus der JSON-Datei oder initialisiert leere Liste"""
-    global teams
-    try:
-        with open(dateipfad, "r") as f:
-            teams = json.load(f)
-    except FileNotFoundError:
-        teams = []
-
-def matches_speichern():
-    """Speichert alle Matches in die JSON-Datei"""
-    with open(matches_dateipfad, "w") as f:
-        json.dump(matches, f, indent=4)
-
-def matches_laden():
-    """Lädt alle Matches aus der JSON-Datei oder initialisiert leere Liste"""
-    global matches
-    try:
-        with open(matches_dateipfad, "r") as f:
-            matches = json.load(f)
-    except FileNotFoundError:
-        matches = []
-
-def match_speichern(match_data):
-    """Speichert ein einzelnes Match und aktualisiert die Datei"""
-    matches.append(match_data)
-    matches_speichern()
 
 def team_waehlen():
     """Zeigt alle Teams an und lässt den Spieler eines wählen"""
