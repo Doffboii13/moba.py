@@ -27,6 +27,7 @@ champions = [
 ]
 
 def spiel_berechnen(team_links, team_rechts, champs_links, champs_rechts):
+    """Berechnet die Spielwerte pro Rolle und bestimmt den Gewinner"""
     rollen = ["Top", "Jungle", "Mid", "Bot", "Support"]
 
     sw_links = {}
@@ -39,22 +40,22 @@ def spiel_berechnen(team_links, team_rechts, champs_links, champs_rechts):
     teamwert_rechts = 0
 
     for rolle in rollen:
-        # Werte holen
+        # Werte der Spieler und Champions holen
         p1 = team_links["spieler"][rolle]
         c1 = champs_links[rolle]
 
         p2 = team_rechts["spieler"][rolle]
         c2 = champs_rechts[rolle]
 
-        # Luck-Werte generieren
+        # Zufallsglück für beide Teams
         luck1 = random.randint(-10, 10)
         luck2 = random.randint(-10, 10)
 
-        # Formel
+        # Formel: Champion-Stärke (50%) + Spieler-Skill (50%) + Glück
         sw1 = (c1["stärke"] * 0.5) + (p1["skill"] * 0.5) + luck1
         sw2 = (c2["stärke"] * 0.5) + (p2["skill"] * 0.5) + luck2
 
-        # optional runden
+        # Werte runden
         sw1 = round(sw1)
         sw2 = round(sw2)
 
@@ -67,7 +68,7 @@ def spiel_berechnen(team_links, team_rechts, champs_links, champs_rechts):
         teamwert_links += sw1
         teamwert_rechts += sw2
 
-    # Gewinner bestimmen
+    # Gewinner bestimmen (höherer Teamwert gewinnt)
     if teamwert_links > teamwert_rechts:
         winner = "links"
     elif teamwert_rechts > teamwert_links:
@@ -78,9 +79,9 @@ def spiel_berechnen(team_links, team_rechts, champs_links, champs_rechts):
     return sw_links, sw_rechts, luck_links, luck_rechts, teamwert_links, teamwert_rechts, winner
 
 def get_farbe_für_sw(rolle, luck_wert, luck_links, luck_rechts, winner):
-    """Bestimmt die Farbe für einen SW-Wert basierend auf Luck und Gewinner"""
+    """Bestimmt die Farbe für einen SW-Wert basierend auf Glück und Gewinner"""
     
-    # Höchster Luck im Siegerteam finden
+    # Höchstes Glück im Siegerteam finden
     if winner == "links":
         max_luck = max(luck_links.values())
         ist_max_luck = luck_links[rolle] == max_luck
@@ -88,7 +89,7 @@ def get_farbe_für_sw(rolle, luck_wert, luck_links, luck_rechts, winner):
         max_luck = max(luck_rechts.values())
         ist_max_luck = luck_rechts[rolle] == max_luck
     
-    # Farblogik: Gelb > Grün/Rot
+    # Farblogik: Gelb (Höchstes Glück) > Grün (Positiv) > Rot (Negativ)
     if ist_max_luck:
         return GELB
     elif luck_wert > 0:
@@ -99,12 +100,13 @@ def get_farbe_für_sw(rolle, luck_wert, luck_links, luck_rechts, winner):
         return RESET  # 0 = keine Farbe
 
 def match_anzeige(team_links, team_rechts, champs_links=None, champs_rechts=None, sw_links=None, sw_rechts=None, luck_links=None, luck_rechts=None, winner=None):
+    """Zeigt beide Teams mit Spielern, Champions und Spielwerten side-by-side an"""
     rollen = ["Top", "Jungle", "Mid", "Bot", "Support"]
 
-    # 🔹 Überschrift
+    # Überschrift mit Team-Namen
     print(f"{team_links['name']} vs {team_rechts['name']}\n")
 
-    # 🔹 Header (mit SW!)
+    # Tabellen-Header
     print(f"{'Rolle':<8} | {'Spieler':<18} | {'S':>3} | {'Champ':<12} | {'CS':>3} | {'SW':>4} || "
           f"{'Rolle':<8} | {'Spieler':<18} | {'S':>3} | {'Champ':<12} | {'CS':>3} | {'SW':>4} |")
     print("-" * 120)
@@ -113,18 +115,18 @@ def match_anzeige(team_links, team_rechts, champs_links=None, champs_rechts=None
         p1 = team_links["spieler"][rolle]
         p2 = team_rechts["spieler"][rolle]
 
-        # Champs
+        # Champion-Daten abrufen
         champ1_name = champs_links[rolle]["name"] if champs_links else ""
         champ1_str = champs_links[rolle]["stärke"] if champs_links else ""
 
         champ2_name = champs_rechts[rolle]["name"] if champs_rechts else ""
         champ2_str = champs_rechts[rolle]["stärke"] if champs_rechts else ""
 
-        # Spielerwerte
+        # Spielwert-Daten abrufen
         sw1 = sw_links[rolle] if sw_links else ""
         sw2 = sw_rechts[rolle] if sw_rechts else ""
 
-        # Farben für SW-Werte (nur wenn luck_links und winner vorhanden sind)
+        # SW-Werte mit Farben formatieren (nur wenn alle Daten vorhanden)
         if luck_links and winner:
             farbe1 = get_farbe_für_sw(rolle, luck_links[rolle], luck_links, luck_rechts, winner)
             farbe2 = get_farbe_für_sw(rolle, luck_rechts[rolle], luck_links, luck_rechts, winner)
@@ -141,6 +143,7 @@ def match_anzeige(team_links, team_rechts, champs_links=None, champs_rechts=None
               f"{champ2_name:<12} | {champ2_str:>3} | {sw2_farbig:>4} |")
 
 def team_ranked(eigenes_team):
+    """Simuliert ein Ranked-Match: Gegner wählen, Champions picken, Ergebnis berechnen"""
     if len(teams) < 2:
         print("Nicht genug Teams vorhanden!")
         input("Enter drücken...")
@@ -155,16 +158,16 @@ def team_ranked(eigenes_team):
         team_links = gegner
         team_rechts = eigenes_team
 
-    # 🔹 SCHRITT 1
+    # Match-Übersicht anzeigen (ohne Champions und Spielwerte)
     print("\n=== MATCH GEFUNDEN ===\n")
     match_anzeige(team_links, team_rechts)
 
     input("\nEnter für Champion Auswahl...")
 
-    # 🔹 SCHRITT 2 (HIER EINFÜGEN)
+    # Champion-Picking: Wechselweise Champions aus dem Pool auswählen
     champ_pool = sorted(champions, key=lambda c: c["stärke"], reverse=True)
 
-    reihenfolge = [1,2,2,1,1,2,2,1,1,2]
+    reihenfolge = [1,2,2,1,1,2,2,1,1,2]  # Pick-Reihenfolge (1=Team links, 2=Team rechts)
 
     rollen = ["Top", "Jungle", "Mid", "Bot", "Support"]
 
@@ -186,18 +189,18 @@ def team_ranked(eigenes_team):
             champs_rechts[rolle] = champ
             freie_rollen_rechts.remove(rolle)
 
-    # 🔹 SCHRITT 2 ANZEIGE
+    # Champions mit Rollen-Zuordnung anzeigen
     print("\n=== CHAMPIONS ZUGEWIESEN ===\n")
     match_anzeige(team_links, team_rechts, champs_links, champs_rechts)
 
     input("\nEnter für Spiel...")
 
-    # 🔹 Spiel berechnen
+    # Spielwerte berechnen und Gewinner bestimmen
     sw_links, sw_rechts, luck_links, luck_rechts, tw_links, tw_rechts, winner = spiel_berechnen(
-    team_links, team_rechts, champs_links, champs_rechts
-)
+        team_links, team_rechts, champs_links, champs_rechts
+    )
 
-    # 🔹 Ergebnis-Header bauen
+    # Ergebnis-Text basierend auf Gewinner
     if winner == "links":
         result_text = "GEWINNT"
     else:
@@ -208,23 +211,24 @@ def team_ranked(eigenes_team):
     print(f"\n=== ERGEBNIS ===")
     print(header + "\n")
 
-    # 🔹 Finale Anzeige mit SW und Farben
+    # Finale Anzeige mit Spielwerten und Farbcodierung
     match_anzeige(team_links, team_rechts, champs_links, champs_rechts, sw_links, sw_rechts, luck_links, luck_rechts, winner)
 
     input("\nEnter zum Fortfahren...")
 
 def champions_anzeigen(zurueck_funktion):
+    """Zeigt alle Champions sortiert nach Name mit ihren Stärkewerten an"""
     while True:
         print("\n=== CHAMPION ÜBERSICHT ===\n")
 
-        # alphabetisch sortieren
+        # Alphabetisch sortieren
         sortiert = sorted(champions, key=lambda c: c["name"])
 
-        # Header
+        # Tabellen-Header
         print(f"{'Name':<15} | {'Stärke':>7}")
         print("-" * 25)
 
-        # Inhalte
+        # Alle Champions auflisten
         for champ in sortiert:
             print(f"{champ['name']:<15} | {champ['stärke']:>7}")
 
@@ -236,10 +240,12 @@ def champions_anzeigen(zurueck_funktion):
             return
 
 def teams_speichern():
+    """Speichert alle Teams in die JSON-Datei"""
     with open(dateipfad, "w") as f:
         json.dump(teams, f, indent=4)
 
 def teams_laden():
+    """Lädt alle Teams aus der JSON-Datei oder initialisiert leere Liste"""
     global teams
     try:
         with open(dateipfad, "r") as f:
@@ -249,16 +255,17 @@ def teams_laden():
 
 
 def team_waehlen():
+    """Zeigt alle Teams an und lässt den Spieler eines wählen"""
     while True:
         print("\n=== TEAM WÄHLEN ===")
 
-        # ❗ Keine Teams vorhanden
+        # Prüfung: Keine Teams vorhanden
         if not teams:
             print("Keine Teams vorhanden!")
             input("Enter drücken...")
             return
 
-        # 📋 Teams auflisten
+        # Alle Teams auflisten
         for i, team in enumerate(teams, start=1):
             print(f"{i}. {team['name']} ({team['tag']})")
 
@@ -266,21 +273,21 @@ def team_waehlen():
 
         choice = input("Auswahl: ").strip().lower()
 
-        # 🔙 zurück ins Startmenü
+        # Zurück zum Startmenü
         if choice == "x":
             return
 
-        # 🔢 Auswahl prüfen
+        # Auswahl validieren
         if choice.isdigit():
             index = int(choice) - 1
 
             if 0 <= index < len(teams):
                 selected_team = teams[index]
 
-                # 👉 Übersicht anzeigen
+                # Team-Übersicht anzeigen
                 team_anzeigen(selected_team)
 
-                # 👉 ins Teammenü gehen
+                # Ins Team-Menü wechseln
                 team_menue(selected_team)
                 return
             else:
@@ -289,6 +296,7 @@ def team_waehlen():
             print("Ungültige Eingabe!")
 
 def team_menue(team):
+    """Menü für Team-Aktionen: Ranked spielen, Team ansehen oder Champions"""
     while True:
         print(f"\n=== TEAM MENÜ ({team['name']}) ===")
         print("1. Teamranked")
@@ -308,21 +316,22 @@ def team_menue(team):
             champions_anzeigen(team_menue)
 
         elif choice == "x":
-            return  # WICHTIG: kein break!
+            return
 
         else:
             print("Ungültige Eingabe!")
 
 def team_anzeigen(team):
+    """Zeigt Teamübersicht mit allen Spielern, deren Rollen und Skills"""
     print("\n=== TEAM ÜBERSICHT ===")
     print(f"Team: {team['name']}")
     print(f"Tag: {team['tag']}\n")
 
-    # Header
+    # Tabellen-Header
     print(f"{'Rolle':<10} | {'Spieler':<20} | {'Stärke':>7}")
     print("-" * 45)
 
-    # Inhalte
+    # Alle Spieler mit ihren Daten auflisten
     for rolle, spieler in team["spieler"].items():
         name_mit_tag = f"{team['tag']} {spieler['name']}"
         print(f"{rolle:<10} | {name_mit_tag:<20} | {spieler['skill']:>7}")
@@ -330,6 +339,7 @@ def team_anzeigen(team):
     input("\nEnter drücken...")
 
 def spielername_existiert(name):
+    """Prüft, ob ein Spieler-Name bereits in einem anderen Team existiert"""
     for team in teams:
         for spieler in team["spieler"].values():
             if spieler["name"].lower() == name.lower():
@@ -337,23 +347,24 @@ def spielername_existiert(name):
     return False
 
 def team_erstellen():
+    """Erstellt ein neues Team mit Namen, Tag und 5 Spielern für alle Rollen"""
     print("\n=== TEAM ERSTELLEN ===")
 
-    # 🔤 Teamname
+    # Teamname eingeben
     while True:
         name = input("Teamname (1-30 Zeichen): ").strip()
         if 1 <= len(name) <= 30 and name not in [t["name"] for t in teams]:
             break
         print("Ungültiger oder bereits vergebener Name!")
 
-    # 🔠 Abkürzung
+    # Team-Abkürzung eingeben
     while True:
         tag = input("Team Abkürzung (1-3 Zeichen): ").strip().upper()
         if 1 <= len(tag) <= 3 and tag not in [t["tag"] for t in teams]:
             break
         print("Ungültige Abkürzung!")
 
-    # 👥 Spieler erstellen
+    # Spieler für alle 5 Rollen erstellen
     rollen = ["Top", "Jungle", "Mid", "Bot", "Support"]
     spieler = {}
 
@@ -372,8 +383,7 @@ def team_erstellen():
                 break
             print("Ungültiger Name!")
 
-
-    # Team als Objekt speichern
+    # Team-Daten speichern
     team = {
         "name": name,
         "tag": tag,
@@ -382,16 +392,17 @@ def team_erstellen():
 
     teams.append(team)
 
-    # 👉 Team Speichern
+    # Team in JSON-Datei speichern
     teams_speichern()
 
-    # 👉 einmalige Anzeige direkt nach der Erstellung
+    # Neu erstelltes Team anzeigen
     team_anzeigen(team)
 
-    # 👉 direkt ins Teammenü springen
+    # Direkt ins Team-Menü wechseln
     team_menue(team)
 
 def start_menu():
+    """Hauptmenü: Team wählen/erstellen, Champions anschauen oder Spiel beenden"""
     while True:
         print("\n=== STARTMENÜ ===")
         print("1. Team wählen")
