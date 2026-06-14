@@ -10,8 +10,10 @@ GRÜN = "\033[92m"
 RESET = "\033[0m"
 
 dateipfad = os.path.join(os.path.dirname(__file__), "teams.json")
+matches_dateipfad = os.path.join(os.path.dirname(__file__), "matches.json")
 
 teams = []  # speichert alle erstellten Teams
+matches = []  # speichert alle Spiele
 
 champions = [
     {"name": "Champion 1", "stärke": 90},
@@ -216,6 +218,23 @@ def team_ranked(eigenes_team):
 
     input("\nEnter zum Fortfahren...")
 
+    # Match speichern
+    match_data = {
+        "match_id": len(matches) + 1,
+        "team_links": {"name": team_links["name"], "tag": team_links["tag"]},
+        "team_rechts": {"name": team_rechts["name"], "tag": team_rechts["tag"]},
+        "champs_links": champs_links,
+        "champs_rechts": champs_rechts,
+        "sw_links": sw_links,
+        "sw_rechts": sw_rechts,
+        "luck_links": luck_links,
+        "luck_rechts": luck_rechts,
+        "tw_links": tw_links,
+        "tw_rechts": tw_rechts,
+        "winner": winner
+    }
+    match_speichern(match_data)
+
 def champions_anzeigen(zurueck_funktion):
     """Zeigt alle Champions sortiert nach Name mit ihren Stärkewerten an"""
     while True:
@@ -253,6 +272,24 @@ def teams_laden():
     except FileNotFoundError:
         teams = []
 
+def matches_speichern():
+    """Speichert alle Matches in die JSON-Datei"""
+    with open(matches_dateipfad, "w") as f:
+        json.dump(matches, f, indent=4)
+
+def matches_laden():
+    """Lädt alle Matches aus der JSON-Datei oder initialisiert leere Liste"""
+    global matches
+    try:
+        with open(matches_dateipfad, "r") as f:
+            matches = json.load(f)
+    except FileNotFoundError:
+        matches = []
+
+def match_speichern(match_data):
+    """Speichert ein einzelnes Match und aktualisiert die Datei"""
+    matches.append(match_data)
+    matches_speichern()
 
 def team_waehlen():
     """Zeigt alle Teams an und lässt den Spieler eines wählen"""
@@ -433,4 +470,5 @@ def start_menu():
 # Startpunkt des Programms
 if __name__ == "__main__":
     teams_laden()
+    matches_laden()
     start_menu()
