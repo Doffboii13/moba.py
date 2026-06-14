@@ -3,6 +3,12 @@ import json
 import os
 import random
 
+# ANSI Farbcodes
+ROT = "\033[91m"
+GELB = "\033[93m"
+GRÜN = "\033[92m"
+RESET = "\033[0m"
+
 dateipfad = os.path.join(os.path.dirname(__file__), "teams.json")
 
 teams = []  # speichert alle erstellten Teams
@@ -25,6 +31,9 @@ def spiel_berechnen(team_links, team_rechts, champs_links, champs_rechts):
 
     sw_links = {}
     sw_rechts = {}
+    
+    luck_links = {}
+    luck_rechts = {}
 
     teamwert_links = 0
     teamwert_rechts = 0
@@ -37,9 +46,13 @@ def spiel_berechnen(team_links, team_rechts, champs_links, champs_rechts):
         p2 = team_rechts["spieler"][rolle]
         c2 = champs_rechts[rolle]
 
+        # Luck-Werte generieren
+        luck1 = random.randint(-10, 10)
+        luck2 = random.randint(-10, 10)
+
         # Formel
-        sw1 = (c1["stärke"] * 0.5) + (p1["skill"] * 0.5) + random.randint(-10, 10)
-        sw2 = (c2["stärke"] * 0.5) + (p2["skill"] * 0.5) + random.randint(-10, 10)
+        sw1 = (c1["stärke"] * 0.5) + (p1["skill"] * 0.5) + luck1
+        sw2 = (c2["stärke"] * 0.5) + (p2["skill"] * 0.5) + luck2
 
         # optional runden
         sw1 = round(sw1)
@@ -47,6 +60,9 @@ def spiel_berechnen(team_links, team_rechts, champs_links, champs_rechts):
 
         sw_links[rolle] = sw1
         sw_rechts[rolle] = sw2
+        
+        luck_links[rolle] = luck1
+        luck_rechts[rolle] = luck2
 
         teamwert_links += sw1
         teamwert_rechts += sw2
@@ -59,7 +75,7 @@ def spiel_berechnen(team_links, team_rechts, champs_links, champs_rechts):
     else:
         winner = random.choice(["links", "rechts"])
 
-    return sw_links, sw_rechts, teamwert_links, teamwert_rechts, winner
+    return sw_links, sw_rechts, luck_links, luck_rechts, teamwert_links, teamwert_rechts, winner
 
 def match_anzeige(team_links, team_rechts, champs_links=None, champs_rechts=None, sw_links=None, sw_rechts=None):
     rollen = ["Top", "Jungle", "Mid", "Bot", "Support"]
@@ -145,7 +161,7 @@ def team_ranked(eigenes_team):
     input("\nEnter für Spiel...")
 
     # 🔹 Spiel berechnen
-    sw_links, sw_rechts, tw_links, tw_rechts, winner = spiel_berechnen(
+    sw_links, sw_rechts, luck_links, luck_rechts, tw_links, tw_rechts, winner = spiel_berechnen(
     team_links, team_rechts, champs_links, champs_rechts
 )
 
